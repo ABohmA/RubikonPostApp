@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="RubikonTaskDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="BlogPost">
+          <Key>
+            <PropertyRef Name="Slug" />
+          </Key>
+          <Property Name="Slug" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="Title" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="PostDescription" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Body" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="CreateAt" Type="datetime" Nullable="false" />
+          <Property Name="UpdatedAt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="PostTags">
+          <Key>
+            <PropertyRef Name="PostSlug" />
+            <PropertyRef Name="TagID" />
+          </Key>
+          <Property Name="PostSlug" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="TagID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Tag">
+          <Key>
+            <PropertyRef Name="TagID" />
+          </Key>
+          <Property Name="TagID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TName" Type="varchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <Association Name="IDTagPost">
+          <End Role="Tag" Type="Self.Tag" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="PostTags" Type="Self.PostTags" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Tag">
+              <PropertyRef Name="TagID" />
+            </Principal>
+            <Dependent Role="PostTags">
+              <PropertyRef Name="TagID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="SlugPostTag">
+          <End Role="BlogPost" Type="Self.BlogPost" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="PostTags" Type="Self.PostTags" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="BlogPost">
+              <PropertyRef Name="Slug" />
+            </Principal>
+            <Dependent Role="PostTags">
+              <PropertyRef Name="PostSlug" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Function Name="SPDB_GetPostsByTag" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="Tag" Type="nvarchar" Mode="In" />
+        </Function>
+        <EntityContainer Name="RubikonTaskDBModelStoreContainer">
+          <EntitySet Name="BlogPost" EntityType="Self.BlogPost" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PostTags" EntityType="Self.PostTags" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Tag" EntityType="Self.Tag" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="IDTagPost" Association="Self.IDTagPost">
+            <End Role="Tag" EntitySet="Tag" />
+            <End Role="PostTags" EntitySet="PostTags" />
+          </AssociationSet>
+          <AssociationSet Name="SlugPostTag" Association="Self.SlugPostTag">
+            <End Role="BlogPost" EntitySet="BlogPost" />
+            <End Role="PostTags" EntitySet="PostTags" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="RubikonTaskDBModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="BlogPost">
+          <Key>
+            <PropertyRef Name="Slug" />
+          </Key>
+          <Property Name="Slug" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Title" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="PostDescription" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Body" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="CreateAt" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="UpdatedAt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Tags" Relationship="Self.PostTags" FromRole="BlogPost" ToRole="Tag" />
+        </EntityType>
+        <EntityType Name="Tag">
+          <Key>
+            <PropertyRef Name="TagID" />
+          </Key>
+          <Property Name="TagID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="BlogPosts" Relationship="Self.PostTags" FromRole="Tag" ToRole="BlogPost" />
+        </EntityType>
+        <Association Name="PostTags">
+          <End Role="Tag" Type="Self.Tag" Multiplicity="*" />
+          <End Role="BlogPost" Type="Self.BlogPost" Multiplicity="*" />
+        </Association>
+        <EntityContainer Name="RubikonTaskDBEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="BlogPosts" EntityType="Self.BlogPost" />
+          <EntitySet Name="Tags" EntityType="Self.Tag" />
+          <AssociationSet Name="PostTags" Association="Self.PostTags">
+            <End Role="Tag" EntitySet="Tags" />
+            <End Role="BlogPost" EntitySet="BlogPosts" />
+          </AssociationSet>
+          <FunctionImport Name="SPDB_GetPostsByTag" ReturnType="Collection(RubikonTaskDBModel.SPDB_GetPostsByTag_Result)">
+          <Parameter Name="Tag" Mode="In" Type="String" />
+          </FunctionImport>
+        </EntityContainer>
+        <ComplexType Name="SPDB_GetPostsByTag_Result">
+          <Property Type="String" Name="Slug" Nullable="false" MaxLength="255" />
+          <Property Type="String" Name="Title" Nullable="false" />
+          <Property Type="String" Name="PostDescription" Nullable="false" />
+          <Property Type="String" Name="Body" Nullable="false" />
+          <Property Type="DateTime" Name="CreateAt" Nullable="false" Precision="23" />
+          <Property Type="DateTime" Name="UpdatedAt" Nullable="true" Precision="23" />
+        </ComplexType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="RubikonTaskDBModelStoreContainer" CdmEntityContainer="RubikonTaskDBEntities">
+          <EntitySetMapping Name="BlogPosts">
+            <EntityTypeMapping TypeName="RubikonTaskDBModel.BlogPost">
+              <MappingFragment StoreEntitySet="BlogPost">
+                <ScalarProperty Name="Slug" ColumnName="Slug" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="PostDescription" ColumnName="PostDescription" />
+                <ScalarProperty Name="Body" ColumnName="Body" />
+                <ScalarProperty Name="CreateAt" ColumnName="CreateAt" />
+                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Tags">
+            <EntityTypeMapping TypeName="RubikonTaskDBModel.Tag">
+              <MappingFragment StoreEntitySet="Tag">
+                <ScalarProperty Name="TagID" ColumnName="TagID" />
+                <ScalarProperty Name="TName" ColumnName="TName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="PostTags" TypeName="RubikonTaskDBModel.PostTags" StoreEntitySet="PostTags">
+            <EndProperty Name="Tag">
+              <ScalarProperty Name="TagID" ColumnName="TagID" />
+            </EndProperty>
+            <EndProperty Name="BlogPost">
+              <ScalarProperty Name="Slug" ColumnName="PostSlug" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <FunctionImportMapping FunctionImportName="SPDB_GetPostsByTag" FunctionName="RubikonTaskDBModel.Store.SPDB_GetPostsByTag">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="RubikonTaskDBModel.SPDB_GetPostsByTag_Result">
+                <ScalarProperty Name="Slug" ColumnName="Slug" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="PostDescription" ColumnName="PostDescription" />
+                <ScalarProperty Name="Body" ColumnName="Body" />
+                <ScalarProperty Name="CreateAt" ColumnName="CreateAt" />
+                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
